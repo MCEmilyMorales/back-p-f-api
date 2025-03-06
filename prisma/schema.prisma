@@ -22,19 +22,18 @@ password String
 model Paciente {
 id      String      @id @default(uuid())
 nombre String
-fecha_de_muestra DateTime
 informes Informe[]
 }
 model Informe {
 id      String      @id @default(uuid())
 fecha_de_muestra DateTime
-pacienteId String @unique
+pacienteId String
 paciente Paciente @relation(fields: [pacienteId], references: [id])
 imagenes Imagen[]
 }
 model Imagen {
 id      String      @id @default(uuid())
 ubicacion String
-informeId String @unique
+informeId String 
 informe Informe @relation(fields: [informeId], references: [id])
 }
