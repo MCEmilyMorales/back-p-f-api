@@ -1,0 +1,40 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-py"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Usuario {
+id      String      @id @default(uuid())
+mail  String
+nombre String
+password String
+}
+model Paciente {
+id      String      @id @default(uuid())
+nombre String
+fecha_de_muestra DateTime
+informes Informe[]
+}
+model Informe {
+id      String      @id @default(uuid())
+fecha_de_muestra DateTime
+pacienteId String @unique
+paciente Paciente @relation(fields: [pacienteId], references: [id])
+imagenes Imagen[]
+}
+model Imagen {
+id      String      @id @default(uuid())
+ubicacion String
+informeId String @unique
+informe Informe @relation(fields: [informeId], references: [id])
+}
