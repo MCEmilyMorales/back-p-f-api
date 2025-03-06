@@ -5,7 +5,7 @@ import uuid
 
 def add_user_routes(app: FastAPI):
     
-    @app.post("/users/")
+    @app.post("/users/", tags=["Usuarios"])
     async def create_user(nombre: str = Query(..., min_length=4, max_length=255),
     mail: str = Query(..., regex="@", min_length=6, max_length=50),
     password: str = Query(..., min_length=5, max_length=255)):
@@ -17,7 +17,7 @@ def add_user_routes(app: FastAPI):
         return {"imagen creada con id = ": new_user.id}
 
 
-    @app.get("/users/{user_id}")
+    @app.get("/users/{user_id}", tags=["Usuarios"])
     async def get_user(user_id: str):
         """Obtener un usuario por ID.
         Recibe: ID del usuario. 
@@ -33,7 +33,7 @@ def add_user_routes(app: FastAPI):
         return {"id": user.id, "nombre": user.nombre}
 
 
-    @app.get("/users/")
+    @app.get("/users/", tags=["Usuarios"])
     async def list_users():
         """ Obtener la lista de usuarios.
         Retorna: lista de diccionarios (ID, nombre)"""
@@ -41,7 +41,7 @@ def add_user_routes(app: FastAPI):
         return [{"id": u.id, "nombre": u.nombre} for u in users]
 
 
-    @app.delete("/users/{user_id}")
+    @app.delete("/users/{user_id}", tags=["Usuarios"])
     async def delete_user(user_id: str):
         """ Eliminar un usuario.
         Recibe: id del usuario a eliminar. 

@@ -5,7 +5,7 @@ import uuid
 
 def add_imagen_routes(app: FastAPI):
     
-    @app.post("/imagenes/")
+    @app.post("/imagenes/", tags=["Imágenes"])
     async def create_imagen(
         ubicacion: str = Query(..., min_length=5, max_length=255),
         informe_id: str = Query(..., min_length=36, max_length=36)
@@ -23,7 +23,7 @@ def add_imagen_routes(app: FastAPI):
         return {"imagen creada con id = ": new_imagen.id}
 
 
-    @app.get("/imagenes/{imagen_id}")
+    @app.get("/imagenes/{imagen_id}", tags=["Imágenes"])
     async def get_imagen(imagen_id: str):
         """Obtener un imagen por ID.
         Recibe: ID de la imagen. 
@@ -40,7 +40,7 @@ def add_imagen_routes(app: FastAPI):
         return {"id": imagen.id, "ubicacion": imagen.ubicacion, "informe_id": imagen.informeId}
  
 
-    @app.get("/imagenes/{informe_id}")
+    @app.get("/imagenes/{informe_id}", tags=["Imágenes"])
     async def list_imagenes(informe_id: str):
         """ Obtener la lista de imagenes para un informe especifico.
         Retorna: lista de diccionarios (ubicacion, Id Informe)"""
@@ -50,7 +50,7 @@ def add_imagen_routes(app: FastAPI):
         return [{"id": img.id, "ubicacion": img.ubicacion, "informe_id": img.informeId} for img in imagenes]
 
 
-    @app.delete("/imagenes/{imagen_id}")
+    @app.delete("/imagenes/{imagen_id}", tags=["Imágenes"])
     async def delete_imagen(imagen_id: str):
         """ Eliminar una imagen.
         Recibe: id de imagen a eliminar. 
