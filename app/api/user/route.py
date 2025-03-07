@@ -14,7 +14,11 @@ def add_user_routes(app: FastAPI):
         Retorna: mensaje con id del usuario creado. 
         """
         new_user = await crud.create_user(db, nombre, mail, password)
-        return {"imagen creada con id = ": new_user.id}
+        return {"usuario creado con id = ": new_user.id}
+
+    @app.put("/users/{user_id}", tags=["Usuarios"])
+    async def update_email(user_id: str):
+        return {" "}
 
 
     @app.get("/users/{user_id}", tags=["Usuarios"])

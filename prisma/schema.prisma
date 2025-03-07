@@ -18,14 +18,20 @@ id      String      @id @default(uuid())
 mail  String
 nombre String
 password String
+pacientes Paciente[]
 }
 model Paciente {
 id      String      @id @default(uuid())
 nombre String
+fecha_de_muestra DateTime
 informes Informe[]
+usuarioId String
+usuario Usuario @relation(fields: [usuarioId], references: [id])
 }
 model Informe {
 id      String      @id @default(uuid())
+numero_informe String
+tipo_estudio String
 fecha_de_muestra DateTime
 pacienteId String
 paciente Paciente @relation(fields: [pacienteId], references: [id])
@@ -34,6 +40,6 @@ imagenes Imagen[]
 model Imagen {
 id      String      @id @default(uuid())
 ubicacion String
-informeId String 
+informeId String
 informe Informe @relation(fields: [informeId], references: [id])
 }
