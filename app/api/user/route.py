@@ -17,8 +17,16 @@ def add_user_routes(app: FastAPI):
         return {"usuario creado con id = ": new_user.id}
 
     @app.put("/users/{user_id}", tags=["Usuarios"])
-    async def update_email(user_id: str):
-        return {" "}
+    async def update_email(user_id: str, mail: str = Query(..., regex="@", min_length=6, max_length=50)):
+        # Validar si id es UUID
+        try:
+            uuid.UUID(user_id)
+        except ValueError:
+            raise HTTPException(status_code=400, detail="ID invalido, debe tener 36 caracteres.")
+        mailUpdate = await crud.update_email(db, user_id, mail)
+        if not mailUpdate:
+            raise HTTPException(status_code=404, detail="No se pudo encontrar el usuario para actualizar el mail")
+        return {"Mail actualizado correctamente"}
 
 
     @app.get("/users/{user_id}", tags=["Usuarios"])
@@ -26,7 +34,7 @@ def add_user_routes(app: FastAPI):
         """Obtener un usuario por ID.
         Recibe: ID del usuario. 
         Retorna: ID y nombre del usuario buscado."""
-        # Validar si informe_id es UUID
+        # Validar si id es UUID
         try:
             uuid.UUID(user_id)
         except ValueError:

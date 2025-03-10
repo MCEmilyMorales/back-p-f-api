@@ -26,7 +26,7 @@ nombre String
 fecha_de_muestra DateTime
 informes Informe[]
 usuarioId String
-usuario Usuario @relation(fields: [usuarioId], references: [id])
+usuario Usuario @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
 }
 model Informe {
 id      String      @id @default(uuid())
@@ -34,12 +34,12 @@ numero_informe String
 tipo_estudio String
 fecha_de_muestra DateTime
 pacienteId String
-paciente Paciente @relation(fields: [pacienteId], references: [id])
+paciente Paciente @relation(fields: [pacienteId], references: [id], onDelete: Cascade)
 imagenes Imagen[]
 }
 model Imagen {
 id      String      @id @default(uuid())
 ubicacion String
 informeId String
-informe Informe @relation(fields: [informeId], references: [id])
+informe Informe @relation(fields: [informeId], references: [id], onDelete: Cascade)
 }

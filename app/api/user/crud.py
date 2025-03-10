@@ -7,6 +7,17 @@ async def create_user(db: Prisma, nombre: str, mail: str, password: str) -> Usua
     Retorna: objeto Usuario"""
     return await db.usuario.create(data={"nombre": nombre, "mail": mail,"password": password})
 
+async def update_email(db: Prisma, user_id: str, mail:str)-> bool:
+    user=await db.usuario.find_unique(where={"id": user_id})
+    if not user:
+        return False  # Usuario no encontrado
+    await db.usuario.update(
+        where={"id": user_id},
+        data={"mail": mail}
+    )
+    return True  # Indica que la actualización fue exitosa
+
+
 async def get_user(db: Prisma, user_id: str) -> Usuario | None:
     """ Buscar un usuario por su ID en la base de datos.
     Recibe: instancia de base de datos, ID.
