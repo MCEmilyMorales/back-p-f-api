@@ -2,10 +2,10 @@ from prisma.models import Paciente
 from prisma import Prisma
 
 async def create_paciente(db:Prisma, nombre:str, usuarioId:str) -> Paciente | None:
-    """Permite inserta a un nuevo paciente en la base de datos.
-    Recibe: instancia de base de datos, nombre y la fecha de muestra.
+    """Permite insertar a un nuevo paciente en la base de datos.
+    Recibe: instancia de base de datos, nombre y id del medico (usuario).
     retorna un mensaje de que el paciente fue cargado con exito"""
-    user=await db.usuario.find_unique(where={"id": usuarioId})
+    user=await db.usuario.find_unique(where={"id": usuarioId}) #validamos si existe el usuario
     if not user:
         return None  # Usuario no encontrado
     await db.paciente.create(

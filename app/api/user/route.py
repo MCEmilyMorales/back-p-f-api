@@ -17,7 +17,13 @@ def add_user_routes(app: FastAPI):
         return {"usuario creado con id = ": new_user.id}
 
     @app.put("/users/{user_id}", tags=["Usuarios"])
-    async def update_email(user_id: str, mail: str = Query(..., regex="@", min_length=6, max_length=50)):
+    async def update_email(
+        user_id: str, 
+        mail: str = Query(..., regex="@", min_length=6, max_length=50)):
+        """Permite actualizar el mail del usuario.
+        Recibe: mail.
+        Retorna: mensaje de exito de actualizacion o mensaje de error. 
+        """
         # Validar si id es UUID
         try:
             uuid.UUID(user_id)
@@ -33,7 +39,7 @@ def add_user_routes(app: FastAPI):
     async def get_user(user_id: str):
         """Obtener un usuario por ID.
         Recibe: ID del usuario. 
-        Retorna: ID y nombre del usuario buscado."""
+        Retorna: ID y nombre del usuario buscado o algun mensaje de error"""
         # Validar si id es UUID
         try:
             uuid.UUID(user_id)
@@ -57,7 +63,7 @@ def add_user_routes(app: FastAPI):
     async def delete_user(user_id: str):
         """ Eliminar un usuario.
         Recibe: id del usuario a eliminar. 
-        Retorna: mensaje que notifica si se elimina"""
+        Retorna: mensaje que notifica si se elimina o mensaje de error"""
         # Validar si informe_id es UUID
         try:
             uuid.UUID(user_id)
