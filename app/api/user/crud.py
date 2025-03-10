@@ -7,7 +7,7 @@ async def create_user(db: Prisma, nombre: str, mail: str, password: str) -> Usua
     Retorna: objeto Usuario"""
     return await db.usuario.create(data={"nombre": nombre, "mail": mail,"password": password})
 
-async def update_email(db: Prisma, user_id: str, mail:str)-> bool:
+async def update_email(db: Prisma, user_id: str, mail:str) -> bool:
     user=await db.usuario.find_unique(where={"id": user_id})
     if not user:
         return False  # Usuario no encontrado
