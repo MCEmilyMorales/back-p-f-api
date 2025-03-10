@@ -21,6 +21,7 @@ add_informe_routes(app)
 
 @app.on_event("startup")
 async def startup():
+    print("✅ Prisma está conectado correctamente")
     await db.connect()
 
 @app.on_event("shutdown")
