@@ -33,6 +33,13 @@ def add_paciente_routes(app:FastAPI):
         paciente = await crud.get_paciente_id(db, paciente_id)
         return paciente
     
+    @app.get("/paciente/user_id/{user_id}", tags=["Paciente"])
+    async def list_paciente_por_doctor(user_id: str):
+        """ Conseguir 1 paciente de la base de datos por medio del id.
+        Retorna el dato del paciente."""
+        paciente = await crud.list_paciente_por_doctor(db, user_id)
+        return paciente    
+    
     @app.delete("/paciente/{paciente_id}", tags=["Paciente"])
     async def delete_paciente(paciente_id:str):
         """ Eliminar un paciente por su id.
