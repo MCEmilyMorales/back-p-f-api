@@ -2,19 +2,38 @@ from fastapi import FastAPI, HTTPException, Query
 from app.api.database import db
 from app.api.user import crud
 import uuid
+import bcrypt
 
 def add_user_routes(app: FastAPI):
     
     @app.post("/users/", tags=["Usuarios"])
-    async def create_user(nombre: str = Query(..., min_length=4, max_length=255),
+    async def create_user(
+    nombre: str = Query(..., min_length=4, max_length=255),
     mail: str = Query(..., regex="@", min_length=6, max_length=50),
     password: str = Query(..., min_length=5, max_length=255)):
         """Crear usuario en la base de datos.
         Recibe: nombre y contraseña.
         Retorna: mensaje con id del usuario creado. 
         """
+        # Hasheo la contraseña antes de guardarla
+        hashed_password = bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt())
         new_user = await crud.create_user(db, nombre, mail, password)
         return {"usuario creado con id = ": new_user.id}
+
+    def verificar_password(password: str, passwordBD: str) -> bool:
+        """Compara la contraseña ingresada con la almacenada en la base de datos."""
+        return bcrypt.checkpw(password.encode("utf-8"), passwordBD.encode("utf-8"))
+
+    @app.post("/usersLogin/", tags=["Usuarios"])
+    async def login(
+        mail: str = Query(..., regex="@", min_length=6, max_length=50),
+        password: str = Query(..., min_length=5, max_length=255)):
+            usuario = await crud.get_user_email(db, mail)  # Obtener usuario de la BD
+            print(usuario)
+            if not usuario or not verificar_password(password, usuario.password):
+                raise HTTPException(status_code=400, detail="mail o contraseña incorrecta")
+    
+            return {"mensaje": "Inicio de sesión exitoso"}
 
     @app.put("/users/{user_id}", tags=["Usuarios"])
     async def update_email(
@@ -56,7 +75,7 @@ def add_user_routes(app: FastAPI):
         """ Obtener la lista de usuarios.
         Retorna: lista de diccionarios (ID, nombre)"""
         users = await crud.get_all_users(db)
-        return [{"id": u.id, "nombre": u.nombre} for u in users]
+        return [{"id": u.id,"mail":u.mail, "nombre": u.nombre} for u in users]
 
 
     @app.delete("/users/{user_id}", tags=["Usuarios"])
