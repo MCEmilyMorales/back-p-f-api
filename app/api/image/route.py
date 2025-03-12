@@ -6,6 +6,7 @@ import boto3
 import os
 from dotenv import load_dotenv
 
+
 s3_client = boto3.client(
     "s3",
     aws_access_key_id=os.getenv("AWS_ACCESS_KEY_ID"),
@@ -16,10 +17,10 @@ BUCKET_NAME = os.getenv("AWS_BUCKET_NAME")
 
 def add_imagen_routes(app: FastAPI):
 
-    @app.post("/upload/")
+    @app.post("/upload/", tags=["Imágenes"])
     async def upload_imagen(informe_id: str, file: UploadFile = File(...)):
         """Sube una imagen a AWS S3 y la guarda en la BD"""
-        file_location = f"imagenes/{file.filename}"
+        file_location = f"imagenes-dg-prueba/{file.filename}"
         try:
             # Subir archivo a S3
             s3_client.upload_fileobj(file.file, BUCKET_NAME, file_location)
@@ -29,14 +30,14 @@ def add_imagen_routes(app: FastAPI):
         except Exception as e:
             return {"error": str(e)}
 
-    @app.get("/imagenes/{imagen_id}")
-    async def get_image(image_id: str):
+
+    @app.get("/imagenes/{imagen_id}", tags=["Imágenes"])
+    async def get_imagen(imagen_id: str):
         """Obtiene la URL de una imagen desde AWS S3"""
-        imagen = await db.imagen.find_unique(where={"id": image_id})
+        imagen = await crud.get_imagen(db, imagen_id)
         
         if not imagen:
             return {"error": "Imagen no encontrada"}
-        
         # Generar URL prefirmada
         url = s3_client.generate_presigned_url(
             "get_object",
