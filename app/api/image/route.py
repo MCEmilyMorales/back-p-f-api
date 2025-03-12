@@ -74,9 +74,20 @@ def add_imagen_routes(app: FastAPI):
         try:
             uuid.UUID(imagen_id)
         except ValueError:
-            raise HTTPException(status_code=400, detail= "ID de la imagen invalido, debe tener 36 caracteres")
-
+            raise HTTPException(status_code=400, detail= "ID de la imagen invalido, debe tener 36 caracteres")   
+#antes de eliminar la imagen la busco segun la ubicacion.
+        imagen= await crud.get_imagen(db, imagen_id)
+        if not imagen:
+            raise HTTPException(status_code=404, detail="Imagen no encontrada en la base de datos")
+        
+        nombre_archivo = imagen.ubicacion
         deleted = await crud.delete_imagen(db, imagen_id)
-        if not deleted:
-            raise HTTPException(status_code=404, detail="Imagen no encontrada")
+
+        if deleted:
+            try:
+                s3_client.delete_object(Bucket=BUCKET_NAME, Key=nombre_archivo)
+            except Exception as e:
+                raise HTTPException(status_code=500, detail=f"Error al eliminar la imagen en S3: {str(e)}")
+            return {"message": "Imagen eliminada"}
+        
         return {"message": "Imagen eliminada"}
