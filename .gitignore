@@ -5,3 +5,4 @@ node_modules
 # Ignoro archivos .pyc y __pycache__
 __pycache__/
 *.pyc
+*.pyo
