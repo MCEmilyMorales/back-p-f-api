@@ -45,15 +45,7 @@ def add_imagen_routes(app: FastAPI):
             ExpiresIn=3600  # Expira en 1 hora
         )
         return {"url": url}
-
-
-
-
-
-
-
-
-
+    
 
     @app.get("/imagenes/informe_id/{informe_id}", tags=["Imágenes"])
     async def list_imagenes(informe_id: str):
