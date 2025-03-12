@@ -2,10 +2,11 @@ from prisma.models import Informe
 from prisma import Prisma
 from typing import List
 from datetime import datetime
-from app.api.image import crud
+from app.api.patient import crud
 from fastapi import HTTPException
+from app.api.informe.models import InformeCreate
 
-async def create_informe(db: Prisma, fecha_de_muestra:str, pacienteId:str,imagenes: List[str]) -> Informe:
+async def create_informe(db: Prisma, informeCreate: InformeCreate) -> Informe:
     """Inserta un nuevo informe de un paciente en la base de datos.    
     Recibe: 
     - db: instancia de Prisma
@@ -14,32 +15,23 @@ async def create_informe(db: Prisma, fecha_de_muestra:str, pacienteId:str,imagen
     - imagenes: Lista de IDs de imágenes a conectar
     """
      # Convertir la fecha a formato ISO 8601
-    fecha_iso = datetime.fromisoformat(fecha_de_muestra).isoformat()
+    fecha_iso = datetime.strptime(informeCreate.fecha_de_muestra, "%Y-%m-%d").isoformat() + "Z"
+
+    # verificar si el paciente existe en la BD-
+    paciente_existe=await crud.get_paciente_id(db,informeCreate.paciente_id)
+    if not paciente_existe:
+        return "Paciente no existe."  # Paciente no encontrado         
     try:
             # 1. Crear el informe sin conectar las imágenes
             informe_principal = await db.informe.create(
                 data={
                     "fecha_de_muestra": fecha_iso,
-                    "pacienteId": pacienteId,
-                    "status": "pendiente"  # Estado inicial
+                    "pacienteId": informeCreate.paciente_id,
+                    "numero_informe": informeCreate.numero_informe,
+                    "tipo_estudio":informeCreate.tipo_estudio 
                 }
             )
-
-            # 2. Llamar al método de creación de imágenes
-            exito = await crud.create_imagen(informe_id=informe_principal.id)
-            if not exito:
-                raise HTTPException(status_code=400, detail="Error en el proceso secundario")
-
-            # 3. Si el proceso de imágenes fue exitoso, actualizar el informe
-            actualizar_registro = await db.informe.update(
-                where={"id": informe_principal.id},
-                data={
-                    "status": "completo",
-                    "imagenes": {"connect": [{"id": img_id} for img_id in imagenes]}
-                }
-            )
-
-            return {"message": "Informe creado con éxito", "informe_id": actualizar_registro.id}
+            return {"informe": informe_principal}
 
     except Exception as exception:
             raise HTTPException(status_code=500, detail=f"Error en la creación: {str(exception)}")

@@ -40,7 +40,7 @@ def add_imagen_routes(app: FastAPI):
         return {"id": imagen.id, "ubicacion": imagen.ubicacion, "informe_id": imagen.informeId}
  
 
-    @app.get("/imagenes/{informe_id}", tags=["Imágenes"])
+    @app.get("/imagenes/informe_id/{informe_id}", tags=["Imágenes"])
     async def list_imagenes(informe_id: str):
         """ Obtener la lista de imagenes para un informe especifico.
         Retorna: lista de diccionarios (ubicacion, Id Informe)"""
