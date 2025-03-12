@@ -6,8 +6,8 @@ from app.api.patient import crud
 def add_paciente_routes(app:FastAPI):
     @app.post("/paciente/", tags=["Paciente"])
     async def create_paciente(nombre:str, usuarioId:str):
-        """Permite inserta a un nuevo paciente en la base de datos.
-        Recibe: instancia de base de datos, nombre y la fecha de muestra.
+        """Permite insertar a un nuevo paciente en la base de datos.
+        Recibe: instancia de base de datos, nombre y id del medico (usuario).
         retorna un mensaje de que el paciente fue cargado con exito"""
         # Validar si id es UUID
         try:
