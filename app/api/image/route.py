@@ -1,11 +1,10 @@
-from fastapi import FastAPI, File, HTTPException, Query, UploadFile
+from fastapi import FastAPI, File, HTTPException, Query, UploadFile, Response
 from app.api.database import db
 from app.api.image import crud
 import uuid
 import boto3
 import os
 from dotenv import load_dotenv
-
 
 
 s3_client = boto3.client(
@@ -20,7 +19,10 @@ def add_imagen_routes(app: FastAPI):
 
     @app.post("/upload/", tags=["Imágenes"])
     async def upload_imagen(informe_id: str, file: UploadFile = File(...)):
-        """Sube una imagen a AWS S3 y la guarda en la BD"""
+        """Sube una imagen a AWS S3 y la guarda en la BD
+        Recibe: id de informe y el archivo imagen. 
+        Retorna: mensaje que notifica eliminacion o error
+        """
         file_location = f"imagenes-dg-prueba/{file.filename}"
         try:
             # Subir archivo a S3
@@ -34,7 +36,9 @@ def add_imagen_routes(app: FastAPI):
 
     @app.get("/imagenes/{imagen_id}", tags=["Imágenes"])
     async def get_imagen(imagen_id: str):
-        """Obtiene la URL de una imagen desde AWS S3"""
+        """Obtiene la URL de una imagen desde AWS S3
+        Recibe: id de imagen. 
+        Retorna: URL"""
         imagen = await crud.get_imagen(db, imagen_id)
         
         if not imagen:
@@ -47,7 +51,27 @@ def add_imagen_routes(app: FastAPI):
         )
         return {"url": url}
     
+    @app.get("/imagenes/descargar/{imagen_id}", tags=["Imágenes"])
+    async def descargar_imagen(imagen_id: str):
+        """Descarga una imagen directamente desde AWS S3.
+        Recibe: id de imagen.
+        Retorna: archivo de imagen en la respuesta.
+        """
+        imagen = await crud.get_imagen(db, imagen_id)
+        if not imagen:
+            return {"error": "Imagen no encontrada"}
 
+        try:
+            # Descargar el archivo desde S3
+            s3_response = s3_client.get_object(Bucket=BUCKET_NAME, Key=imagen.ubicacion)
+            contenido = s3_response["Body"].read()
+            content_type = s3_response["ContentType"]  # Detecta el tipo de archivo
+            #attachment -> Fuerza descargar archivo, inline -> intenta abrir imagen en navegador e interpretar como texto (no util en este caso) 
+            return Response(content=contenido, media_type=content_type,
+                headers={"Content-Disposition": f"attachment; filename={imagen.ubicacion.split('/')[-1]}"})
+        except Exception as e:
+            return {"error": str(e)}
+        
     @app.get("/imagenes/informe_id/{informe_id}", tags=["Imágenes"])
     async def list_imagenes(informe_id: str):
         """ Obtener la lista de imagenes para un informe especifico.
@@ -68,7 +92,7 @@ def add_imagen_routes(app: FastAPI):
             uuid.UUID(imagen_id)
         except ValueError:
             raise HTTPException(status_code=400, detail= "ID de la imagen invalido, debe tener 36 caracteres")   
-#antes de eliminar la imagen la busco segun la ubicacion.
+        #antes de eliminar la imagen la busco segun la ubicacion.
         imagen= await crud.get_imagen(db, imagen_id)
         if not imagen:
             raise HTTPException(status_code=404, detail="Imagen no encontrada en la base de datos")
