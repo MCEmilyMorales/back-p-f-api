@@ -1,20 +1,23 @@
 import uuid
 from fastapi import FastAPI, HTTPException, Query
+from pydantic import BaseModel
 from app.api.database import db  
 from app.api.patient import crud
+from app.api.patient.models import PacienteCreate
+
 
 def add_paciente_routes(app:FastAPI):
     @app.post("/paciente/", tags=["Paciente"])
-    async def create_paciente(nombre:str, usuarioId:str):
+    async def create_paciente(paciente: PacienteCreate):
         """Permite insertar a un nuevo paciente en la base de datos.
         Recibe: instancia de base de datos, nombre y id del medico (usuario).
         retorna un mensaje de que el paciente fue cargado con exito"""
         # Validar si id es UUID
         try:
-            uuid.UUID(usuarioId)
+            uuid.UUID(paciente.usuarioId)
         except ValueError:
             raise HTTPException(status_code=400, detail="ID invalido, debe tener 36 caracteres.")
-        nuevo_paciente = await crud.create_paciente(db, nombre, usuarioId)
+        nuevo_paciente = await crud.create_paciente(db, paciente.nombre, paciente.usuarioId)
         if not nuevo_paciente:
             raise HTTPException(status_code=404, detail="No se pudo crear el paciente porque no existe el usuario asociado")
         return {"Paciente creado con exito."}
