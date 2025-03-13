@@ -64,3 +64,6 @@ tzdata==2025.1
 urllib3==2.3.0
 uvicorn==0.34.0
 virtualenv==20.29.2
+bcrypt
+boto3
+python-multipart
