@@ -15,8 +15,8 @@ datasource db {
 
 model Usuario {
 id      String      @id @default(uuid())
-mail  String
-nombre String
+mail  String        @unique
+nombre String       @unique
 password String
 pacientes Paciente[]
 }

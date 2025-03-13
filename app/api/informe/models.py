@@ -1,5 +1,4 @@
 from pydantic import BaseModel
-from datetime import datetime
 
 class InformeBase(BaseModel):
     fecha_de_muestra: str

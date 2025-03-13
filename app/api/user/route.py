@@ -3,37 +3,26 @@ from app.api.database import db
 from app.api.user import crud
 import uuid
 import bcrypt
+from app.api.user.models import UsuarioCreate, UsuarioLogin
 
 def add_user_routes(app: FastAPI):
     
     @app.post("/users/", tags=["Usuarios"])
-    async def create_user(
-    nombre: str = Query(..., min_length=4, max_length=255),
-    mail: str = Query(..., regex="@", min_length=6, max_length=50),
-    password: str = Query(..., min_length=5, max_length=255)):
+    async def create_user(usuarioCreate: UsuarioCreate):
         """Crear usuario en la base de datos.
         Recibe: nombre y contraseña.
         Retorna: mensaje con id del usuario creado. 
         """
         # Hasheo la contraseña antes de guardarla
-        hashed_password = bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt())
-        new_user = await crud.create_user(db, nombre, mail, password)
+        hashed_password = bcrypt.hashpw(usuarioCreate.password.encode("utf-8"), bcrypt.gensalt())
+        hashed_password= hashed_password.decode("utf-8")
+        new_user = await crud.create_user(db, usuarioCreate.nombre, usuarioCreate.mail, hashed_password)
         return {"usuario creado con id = ": new_user.id}
 
-    def verificar_password(password: str, passwordBD: str) -> bool:
-        """Compara la contraseña ingresada con la almacenada en la base de datos."""
-        return bcrypt.checkpw(password.encode("utf-8"), passwordBD.encode("utf-8"))
-
-    @app.post("/usersLogin/", tags=["Usuarios"])
-    async def login(
-        mail: str = Query(..., regex="@", min_length=6, max_length=50),
-        password: str = Query(..., min_length=5, max_length=255)):
-            usuario = await crud.get_user_email(db, mail)  # Obtener usuario de la BD
-            print(usuario)
-            if not usuario or not verificar_password(password, usuario.password):
-                raise HTTPException(status_code=400, detail="mail o contraseña incorrecta")
-    
-            return {"mensaje": "Inicio de sesión exitoso"}
+    @app.post("/users_login/", tags=["Usuarios"])
+    async def login(usuarioLogin: UsuarioLogin = None):
+        await crud.login(db, usuarioLogin)
+        return {"mensaje": "Inicio de sesión exitoso"}
 
     @app.put("/users/{user_id}", tags=["Usuarios"])
     async def update_email(
