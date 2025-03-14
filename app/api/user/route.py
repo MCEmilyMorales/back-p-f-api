@@ -2,7 +2,6 @@ from fastapi import FastAPI, HTTPException, Query
 from app.api.database import db
 from app.api.user import crud
 import uuid
-import bcrypt
 from app.api.user.models import UsuarioCreate, UsuarioLogin
 
 def add_user_routes(app: FastAPI):
@@ -14,15 +13,16 @@ def add_user_routes(app: FastAPI):
         Retorna: mensaje con id del usuario creado. 
         """
         # Hasheo la contraseña antes de guardarla
-        hashed_password = bcrypt.hashpw(usuarioCreate.password.encode("utf-8"), bcrypt.gensalt())
-        hashed_password= hashed_password.decode("utf-8")
+        hashed_password = await crud.hashear_password(usuarioCreate.password)
         new_user = await crud.create_user(db, usuarioCreate.nombre, usuarioCreate.mail, hashed_password)
         return {"usuario creado con id = ": new_user.id}
 
+    
     @app.post("/users_login/", tags=["Usuarios"])
     async def login(usuarioLogin: UsuarioLogin = None):
-        await crud.login(db, usuarioLogin)
-        return {"mensaje": "Inicio de sesión exitoso"}
+        """EL usuario podra loguearse de forma manual."""
+        return await crud.login(db, usuarioLogin)
+        
 
     @app.put("/users/{user_id}", tags=["Usuarios"])
     async def update_email(
