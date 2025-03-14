@@ -51,7 +51,8 @@ def add_imagen_routes(app: FastAPI):
             ExpiresIn=3600  # Expira en 1 hora
         )
         return {"url": url}
-    
+
+
     @app.get("/imagenes/descargar/{imagen_id}", tags=["Imágenes"])
     async def descargar_imagen(imagen_id: str):
         """Descarga una imagen directamente desde AWS S3.
