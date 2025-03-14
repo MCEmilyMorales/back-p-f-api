@@ -23,13 +23,13 @@ pacientes Paciente[]
 model Paciente {
 id      String      @id @default(uuid())
 nombre String
+num_historia_clinica String
 informes Informe[]
 usuarioId String
 usuario Usuario @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
 }
 model Informe {
 id      String      @id @default(uuid())
-numero_informe String
 tipo_estudio String
 fecha_de_muestra DateTime
 pacienteId String

@@ -3,7 +3,6 @@ from pydantic import BaseModel
 class InformeBase(BaseModel):
     fecha_de_muestra: str
     paciente_id: str
-    numero_informe: str
     tipo_estudio: str
 
 class InformeCreate(InformeBase):
