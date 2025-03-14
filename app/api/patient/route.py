@@ -14,10 +14,10 @@ def add_paciente_routes(app:FastAPI):
         retorna un mensaje de que el paciente fue cargado con exito"""
         # Validar si id es UUID
         try:
-            uuid.UUID(paciente.usuarioId)
+            uuid.UUID(paciente.usuario_id)
         except ValueError:
             raise HTTPException(status_code=400, detail="ID invalido, debe tener 36 caracteres.")
-        nuevo_paciente = await crud.create_paciente(db, paciente.nombre, paciente.usuarioId)
+        nuevo_paciente = await crud.create_paciente(db, paciente.nombre, paciente.usuario_id)
         if not nuevo_paciente:
             raise HTTPException(status_code=404, detail="No se pudo crear el paciente porque no existe el usuario asociado")
         return {"Paciente creado con exito."}
