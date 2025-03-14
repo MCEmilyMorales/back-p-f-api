@@ -66,4 +66,4 @@ uvicorn==0.34.0
 virtualenv==20.29.2
 bcrypt
 boto3
-python-multipart
+python-multipartpython-jose[cryptography]
