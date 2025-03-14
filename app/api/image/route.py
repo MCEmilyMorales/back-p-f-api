@@ -1,4 +1,4 @@
-from fastapi import FastAPI, File, HTTPException, Query, UploadFile, Response
+from fastapi import FastAPI, File, Form, HTTPException, Query, UploadFile, Response
 from app.api.database import db
 from app.api.image import crud
 
@@ -19,7 +19,8 @@ BUCKET_NAME = os.getenv("AWS_BUCKET_NAME")
 def add_imagen_routes(app: FastAPI):
 
     @app.post("/upload/", tags=["Imágenes"])
-    async def upload_imagen(informe_id: str, file: UploadFile = File(...)):
+    async def upload_imagen(informe_id: str = Form(...), 
+    file: UploadFile = File(...)):
         """Sube una imagen a AWS S3 y la guarda en la BD
         Recibe: id de informe y el archivo imagen. 
         Retorna: mensaje que notifica eliminacion o error
