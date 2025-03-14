@@ -4,6 +4,8 @@ from app.api.user.route import add_user_routes
 from app.api.image.route import add_imagen_routes
 from app.api.patient.route import add_paciente_routes
 from app.api.informe.route import add_informe_routes
+from fastapi.middleware.cors import CORSMiddleware
+
 
 app = FastAPI(
     openapi_tags=[
@@ -13,6 +15,15 @@ app = FastAPI(
         {"name": "Informe", "description": "Operaciones relacionadas con la tabla de informe"},
 
     ])
+
+# Configurar CORS
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Usar dominio específico en producción!!!!!!
+    allow_credentials=True,
+    allow_methods=["*"],  # todos los métodos
+    allow_headers=["*"],  
+)
 
 add_user_routes(app)
 add_imagen_routes(app)
