@@ -27,7 +27,6 @@ async def create_informe(db: Prisma, informeCreate: InformeCreate) -> Informe:
                 data={
                     "fecha_de_muestra": fecha_iso,
                     "pacienteId": informeCreate.paciente_id,
-                    "numero_informe": informeCreate.numero_informe,
                     "tipo_estudio":informeCreate.tipo_estudio 
                 }
             )
