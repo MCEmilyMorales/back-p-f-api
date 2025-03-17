@@ -11,7 +11,6 @@ from datetime import timedelta
 load_dotenv()
 
 
-
 async def create_user(db: Prisma, nombre: str, mail: str, password: str) -> Usuario:
     """Permite insertar un nuevo usuario en la base de datos.
     Recibe: instancia de base de datos, nombre y contraseña.
@@ -45,24 +44,21 @@ async def delete_user(db: Prisma, user_id: str) -> bool:
 
 async def login(db: Prisma,usuario_login):
      # el usuario existe???
-    if not usuario_login.mail and not usuario_login.nombre:
+    if not usuario_login.username:
         raise HTTPException(status_code=400, detail='Debes proporcionar un mail o un nombre')
     
-    user = None
-    if usuario_login.mail:
-        user = await get_user_email(db,usuario_login.mail) 
-    elif usuario_login.nombre:
-        user = await get_user_nombre(db, usuario_login.nombre) 
+    user =  await get_user_email(db, usuario_login.username) or await get_user_nombre(db, usuario_login.username)
     
-    if not user:
-        raise HTTPException(status_code=400, detail='Verifique sus datos.')
- # Verificar si el usuario existe y si la contraseña es correcta
+    if not user or not await verificar_password(usuario_login.password, user.password):
+        raise HTTPException(status_code=400, detail="Verifique sus datos.")
+
+    # Generar token de acceso
+    token_de_acceso = crear_token.crear_access_token(
+        data={"sub": user.id},
+        expiracion=timedelta(minutes=int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", 15)))
+    )
     
-    if not await verificar_password(usuario_login.password, user.password):
-        raise HTTPException(status_code=400, detail='Verifique sus datos.')
- # Si el usuario pasa los datos correctos se le enviara el JWT-
-    token_de_acceso = crear_token.crear_access_token(data={'sub':user.id}, expiracion=timedelta(minutes=int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", 15))))
-    return {"token": token_de_acceso,"token_type": "bearer"}
+    return {"access_token": token_de_acceso, "token_type": "bearer"}
 
 async def hashear_password(password:str)->str:
     """Hashea la contraseña de forma segura"""

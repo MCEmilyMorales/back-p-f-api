@@ -10,8 +10,4 @@ class UsuarioBase(BaseModel):
 class UsuarioCreate(UsuarioBase):
     pass
 
-class UsuarioLogin(UsuarioBase):
-    nombre:Optional[str] = None
-    mail:Optional[str] = None
-    password:str = Field(..., min_length=6)
 

@@ -2,8 +2,10 @@ from fastapi import FastAPI, HTTPException, Query, Depends
 from app.api.database import db
 from app.api.user import crud
 import uuid
-from app.api.user.models import UsuarioCreate, UsuarioLogin
+from app.api.user.models import UsuarioCreate
 from app.api.user.token.decodificar_token import obtener_usuario_actual
+from fastapi.security import OAuth2PasswordRequestForm
+
 
 def add_user_routes(app: FastAPI):
     
@@ -20,9 +22,9 @@ def add_user_routes(app: FastAPI):
 
     
     @app.post("/users_login/", tags=["Usuarios"])
-    async def login(usuarioLogin: UsuarioLogin = None):
+    async def login(form_data: OAuth2PasswordRequestForm = Depends()):
         """EL usuario podra loguearse de forma manual."""
-        return await crud.login(db, usuarioLogin)
+        return await crud.login(db, form_data)
         
 
     @app.put("/users/{user_id}", tags=["Usuarios"])

@@ -7,7 +7,7 @@ import os
 # Cargar variables desde .env
 load_dotenv()
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl='login')#! controlar esto
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl='users_login')#! controlar esto
 
 def obtener_usuario_actual(token: str = Depends(oauth2_scheme)):
     try:
@@ -19,3 +19,5 @@ def obtener_usuario_actual(token: str = Depends(oauth2_scheme)):
         return {"username": username}# "role": role(se agregara cuando se cree mas de un rol)
     except JWTError:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Token inválido")
+    
+
