@@ -1,8 +1,9 @@
-from fastapi import FastAPI, HTTPException, Query
+from fastapi import FastAPI, HTTPException, Query, Depends
 from app.api.database import db
 from app.api.user import crud
 import uuid
 from app.api.user.models import UsuarioCreate, UsuarioLogin
+from app.api.user.token.decodificar_token import obtener_usuario_actual
 
 def add_user_routes(app: FastAPI):
     
@@ -44,7 +45,7 @@ def add_user_routes(app: FastAPI):
 
 
     @app.get("/users/{user_id}", tags=["Usuarios"])
-    async def get_user(user_id: str):
+    async def get_user(user_id:str ,login: dict = Depends(obtener_usuario_actual)):
         """Obtener un usuario por ID.
         Recibe: ID del usuario. 
         Retorna: ID y nombre del usuario buscado o algun mensaje de error"""
