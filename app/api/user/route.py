@@ -1,18 +1,19 @@
 from fastapi import FastAPI, HTTPException, Query, Depends
 from app.api.database import db
 from app.api.user import crud
-import uuid
-from app.api.user.models import UsuarioCreate, UsuarioLogin
+from app.api.user.models import UsuarioCreate
 from app.api.user.token.decodificar_token import obtener_usuario_actual
+from fastapi.security import OAuth2PasswordRequestForm
+from app.api.user.models import UsuarioUpdateMail
+
 
 def add_user_routes(app: FastAPI):
     
     @app.post("/users/", tags=["Usuarios"])
     async def create_user(usuarioCreate: UsuarioCreate):
         """Crear usuario en la base de datos.
-        Recibe: nombre y contraseña.
-        Retorna: mensaje con id del usuario creado. 
-        """
+        Parametro: nombre, mail y contraseña.
+        Retorna: mensaje con id del usuario creado. """
         # Hasheo la contraseña antes de guardarla
         hashed_password = await crud.hashear_password(usuarioCreate.password)
         new_user = await crud.create_user(db, usuarioCreate.nombre, usuarioCreate.mail, hashed_password)
@@ -20,32 +21,26 @@ def add_user_routes(app: FastAPI):
 
     
     @app.post("/users_login/", tags=["Usuarios"])
-    async def login(usuarioLogin: UsuarioLogin = None):
-        """EL usuario podra loguearse de forma manual."""
-        return await crud.login(db, usuarioLogin)
+    async def login(form_data: OAuth2PasswordRequestForm = Depends()):
+        """El usuario podra loguearse de forma manual.
+        Parametro: OAuth2PasswordRequestForm de FastAPI. Recibe el email o el nombre y la contraseña.
+        Retorna: Token o mensaje para verificar sus datos. """        
+        return await crud.login(db, form_data)
         
 
     @app.put("/users/{user_id}", tags=["Usuarios"])
-    async def update_email(
-        user_id: str, 
-        mail: str = Query(..., regex="@", min_length=6, max_length=50)):
+    async def update_email(usuarioUpdateMail: UsuarioUpdateMail):
         """Permite actualizar el mail del usuario.
-        Recibe: mail.
-        Retorna: mensaje de exito de actualizacion o mensaje de error. 
-        """
-        # Validar si id es UUID
-        try:
-            uuid.UUID(user_id)
-        except ValueError:
-            raise HTTPException(status_code=400, detail="ID invalido, debe tener 36 caracteres.")
-        mailUpdate = await crud.update_email(db, user_id, mail)
+        Parametro: mail.
+        Retorna: mensaje de exito de actualizacion o mensaje de error."""
+        mailUpdate = await crud.update_email(db, usuarioUpdateMail.user_id, usuarioUpdateMail.mail)
         if not mailUpdate:
             raise HTTPException(status_code=404, detail="No se pudo encontrar el usuario para actualizar el mail")
         return {"Mail actualizado correctamente"}
 
 
     @app.get("/users/{user_id}", tags=["Usuarios"])
-    async def get_user(user_id:str ,login: dict = Depends(obtener_usuario_actual)):
+    async def get_user(user_id:str , login: dict = Depends(obtener_usuario_actual)):
         """Obtener un usuario por ID.
         Recibe: ID del usuario. 
         Retorna: ID y nombre del usuario buscado o algun mensaje de error"""

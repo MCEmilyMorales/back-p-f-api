@@ -1,17 +1,17 @@
-from pydantic import BaseModel, Field
-from fastapi import Query
+from pydantic import BaseModel, Field, EmailStr, constr
 from typing import Optional
+import uuid
 
 class UsuarioBase(BaseModel):
-    nombre: str = Query(..., min_length=4, max_length=255),
-    mail: str = Query(..., regex="@", min_length=6, max_length=50),
-    password: str = Query(..., min_length=5, max_length=255)
+    nombre: str = Field(..., min_length=4, max_length=255),
+    mail: str = EmailStr,
+    password: str = constr(min_length=5, max_length=255, pattern=r"^(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]+$")
 
 class UsuarioCreate(UsuarioBase):
     pass
 
-class UsuarioLogin(UsuarioBase):
-    nombre:Optional[str] = None
-    mail:Optional[str] = None
-    password:str = Field(..., min_length=6)
+class UsuarioUpdateMail(UsuarioBase):
+    id: uuid.UUID
+    mail: EmailStr
+
 
