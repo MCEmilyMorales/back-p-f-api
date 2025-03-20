@@ -6,7 +6,10 @@ import uuid
 import boto3
 import os
 from dotenv import load_dotenv
-
+import sys
+#CORE_PATH = r"C:/Users/User/Desktop/Debora/FullStackDigpatho/back-E-D/ki67"
+#sys.path.append(CORE_PATH)
+from api_conexion import ki67_imagen
 
 s3_client = boto3.client(
     "s3",
@@ -29,6 +32,10 @@ def add_imagen_routes(app: FastAPI):
         try:
             # Subir archivo a S3
             s3_client.upload_fileobj(file.file, BUCKET_NAME, file_location)
+            
+            #pasar a IA
+            resultado=ki67_imagen(file)
+            print(resultado)
             # Guardar en la base de datos
             new_imagen = await crud.create_imagen(db, file_location, informe_id)
             return {"message": "Imagen subida con éxito", "imagen": new_imagen}
