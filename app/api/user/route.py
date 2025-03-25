@@ -16,6 +16,7 @@ def add_user_routes(app: FastAPI):
         Retorna: mensaje con id del usuario creado. """
         # Hasheo la contraseña antes de guardarla
         hashed_password = await crud.hashear_password(usuarioCreate.password)
+        print("CREO USUARIOOO")
         new_user = await crud.create_user(db, usuarioCreate.nombre, usuarioCreate.mail, hashed_password)
         return {"usuario creado con id = ": new_user.id}
 

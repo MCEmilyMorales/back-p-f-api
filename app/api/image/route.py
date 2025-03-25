@@ -1,15 +1,13 @@
-from fastapi import FastAPI, File, Form, HTTPException, Query, UploadFile, Response
+from io import BytesIO
+import io
+import requests
+from fastapi import FastAPI, File, Form, HTTPException, UploadFile
 from app.api.database import db
 from app.api.image import crud
-
-import uuid
 import boto3
 import os
-from dotenv import load_dotenv
-import sys
-#CORE_PATH = r"C:/Users/User/Desktop/Debora/FullStackDigpatho/back-E-D/ki67"
-#sys.path.append(CORE_PATH)
-from api_conexion import ki67_imagen
+
+CONDASERVER_URL = "http://localhost:9000/procesar_imagen/"
 
 s3_client = boto3.client(
     "s3",
@@ -33,15 +31,21 @@ def add_imagen_routes(app: FastAPI):
             # Subir archivo a S3
             s3_client.upload_fileobj(file.file, BUCKET_NAME, file_location)
             
-            #pasar a IA
-            resultado=ki67_imagen(file)
-            print(resultado)
+            #data
+            response = requests.post(CONDASERVER_URL, json={"ubicacion": file_location})
+
+            #print(f"Response status: {response.status_code}")  # Debug
+            #print(f"Response body: {response.text}")  # Debug
+
+            if response.status_code != 200:
+                return {"error": "Error en la comunicación con el servidor de procesamiento."}
+            print(response.json())
+            
             # Guardar en la base de datos
             new_imagen = await crud.create_imagen(db, file_location, informe_id)
             return {"message": "Imagen subida con éxito", "imagen": new_imagen}
         except Exception as e:
             return {"error": str(e)}
-
 
     @app.get("/imagenes/{imagen_id}", tags=["Imágenes"])
     async def get_imagen(imagen_id: str):
