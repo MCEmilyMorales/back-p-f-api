@@ -1,11 +1,13 @@
 from io import BytesIO
 import io
 import requests
-from fastapi import FastAPI, File, Form, HTTPException, UploadFile
+from fastapi import FastAPI, File, Form, HTTPException, UploadFile, Response
 from app.api.database import db
 from app.api.image import crud
 import boto3
 import os
+import uuid
+
 
 CONDASERVER_URL = "http://localhost:9000/procesar_imagen/"
 
