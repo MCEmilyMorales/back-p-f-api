@@ -40,8 +40,8 @@ def add_imagen_routes(app: FastAPI):
                 try:
                     # Generar ruta en S3
                     new_name= await crud.generar_nombre_archivo(db, informe_id)
-                    file_location = f"imagenes-dg-prueba/{new_name}"
-                    s3_client.upload_fileobj(file.file, BUCKET_NAME, file_location + file.filename)
+                    file_location = f"imagenes-dg-prueba/{new_name}{file.filename}"
+                    s3_client.upload_fileobj(file.file, BUCKET_NAME, file_location )
 
                     #data
                     response = requests.post(CONDASERVER_URL, json={"ubicacion": file_location})
@@ -54,7 +54,7 @@ def add_imagen_routes(app: FastAPI):
                     json_data = response.json()
 
                     # Guardar respuesta en S3
-                    json_key = f"procesados/{file.filename}.json"
+                    json_key = f"procesados/{new_name}.json"
                     s3_client.put_object(
                         Bucket=BUCKET_NAME,
                         Key=json_key,
