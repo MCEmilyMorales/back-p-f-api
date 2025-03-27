@@ -1,17 +1,13 @@
-from io import BytesIO
-import io
 #import json
 import json
 from typing import List
 import httpx
 import requests
-from fastapi import Depends, FastAPI, File, Form, HTTPException, UploadFile, Response
+from fastapi import FastAPI, File, Form, HTTPException, UploadFile, Response
 from app.api.database import db
 from app.api.image import crud
 import boto3
 import os
-from datetime import datetime, timezone
-#from sqlalchemy.ext.asyncio import AsyncSession
 import uuid
 
 CONDASERVER_URL = "http://localhost:9000/procesar_imagen/"
@@ -43,8 +39,9 @@ def add_imagen_routes(app: FastAPI):
             for file in files:
                 try:
                     # Generar ruta en S3
-                    file_location = f"imagenes-dg-prueba/{file.filename}"
-                    s3_client.upload_fileobj(file.file, BUCKET_NAME, file_location)
+                    new_name= await crud.generar_nombre_archivo(db, informe_id)
+                    file_location = f"imagenes-dg-prueba/{new_name}"
+                    s3_client.upload_fileobj(file.file, BUCKET_NAME, file_location + file.filename)
 
                     #data
                     response = requests.post(CONDASERVER_URL, json={"ubicacion": file_location})
