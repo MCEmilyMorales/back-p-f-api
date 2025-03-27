@@ -53,7 +53,7 @@ def add_imagen_routes(app: FastAPI):
                     # Obtener el JSON de respuesta
                     json_data = response.json()
                     resultadoFinal= calculos.PorcentajePositivos(json_data)
-                    print(resultadoFinal)
+                    
 
                     # Guardar respuesta en S3
                     json_key = f"procesados/{new_name}.json"
@@ -72,10 +72,7 @@ def add_imagen_routes(app: FastAPI):
                 except Exception as e:
                     errores.append(f"Error con {file.filename}: {str(e)}")
 
-        return {
-            "message": "Proceso completado",
-            "errores": errores
-        }
+        return {"respuesta":resultadoFinal}
 
     @app.get("/imagenes/{imagen_id}", tags=["Imágenes"])
     async def get_imagen(imagen_id: str):
