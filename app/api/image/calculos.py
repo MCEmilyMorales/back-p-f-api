@@ -1,4 +1,4 @@
-# Extraer las etiquetas
+
 def PorcentajePositivos(data):
     labels = data['resultado']['labels']
 
@@ -17,5 +17,6 @@ def PorcentajePositivos(data):
     else: interpretacion ="Alto índice de proliferación"
 
     return {'datos':{'porcentaje_positivo':porcentaje_positivo,
-                     'interpretacion':interpretacion}
+                     'interpretacion':interpretacion},
+                     'respuesta':data
             }
