@@ -48,9 +48,8 @@ async def generar_nombre_archivo(db: Prisma, informe_id) -> str:
     nombrePaciente= await get_paciente_by_image(db, informe_id)
 
     hash_bytes = bcrypt.hashpw(nombrePaciente.encode(), bcrypt.gensalt())
+    hash_base64 = hash_bytes.decode()[-8:]
+    hash_base64=hash_base64.replace('/', '-')
+    fecha_actual = datetime.now().strftime("%Y%m%d")
 
-    #pasar a base64 y truncar a los primeros 8 caracteres, dado que sino son 60 caracteres 
-    hash_base64 = base64.b64encode(hash_bytes).decode('utf-8')[:8]
-    fecha_actual = datetime.now('utf-8').strftime("%Y%m%d")
-
-    return f"{nombrePaciente}{hash_base64}{fecha_actual}.png"
+    return f"{nombrePaciente}_{hash_base64}_{fecha_actual}"
