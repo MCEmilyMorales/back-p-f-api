@@ -1,14 +1,17 @@
 from io import BytesIO
 import io
+#import json
+import json
 from typing import List
 import httpx
 import requests
 from fastapi import Depends, FastAPI, File, Form, HTTPException, UploadFile, Response
-from app.api.database import db, get_db
+from app.api.database import db
 from app.api.image import crud
 import boto3
 import os
-from sqlalchemy.ext.asyncio import AsyncSession
+from datetime import datetime, timezone
+#from sqlalchemy.ext.asyncio import AsyncSession
 import uuid
 
 CONDASERVER_URL = "http://localhost:9000/procesar_imagen/"
@@ -26,43 +29,54 @@ def add_imagen_routes(app: FastAPI):
 
     @app.post("/upload/", tags=["Imágenes"])
     async def upload_imagen(
-            informe_id: str = Form(...), 
-            files: List[UploadFile] = File(...), 
-            db: AsyncSession = Depends(get_db)   # Obtener sesión de BD
+        informe_id: str = Form(...), 
+        files: List[UploadFile] = File(...)
     ):
         """
-        Sube varias imágenes a AWS S3 y las guarda en la BD.
-        Recibe: id de informe y los archivos imagen. 
-        Retorna: mensaje con detalles de la subida o errores.
+        Sube varias imágenes a AWS S3, las envía al servidor de IA (Conda) y 
+        guarda la respuesta en S3.
         """
         imagenes_rutas_guardadas = []
-        imagenes_json = []
+        errores = []
 
         async with httpx.AsyncClient() as client:
             for file in files:
                 try:
-                    nombre_archivo = await crud.generar_nombre_archivo(db, informe_id)
-                    file_location = f"imagenes-dg-prueba/{nombre_archivo}"
-
-                        # Subir archivo a S3
+                    # Generar ruta en S3
+                    file_location = f"imagenes-dg-prueba/{file.filename}"
                     s3_client.upload_fileobj(file.file, BUCKET_NAME, file_location)
 
-                        # Llamar al servidor de procesamiento Conda
-                    response = await client.post(CONDASERVER_URL, json={"ubicacion": file_location})
+                    #data
+                    response = requests.post(CONDASERVER_URL, json={"ubicacion": file_location})
 
                     if response.status_code != 200:
                         return {"error": "Error en la comunicación con el servidor de procesamiento."}
+                    print(response.json())
+                    
+                    # Obtener el JSON de respuesta
+                    json_data = response.json()
 
-                        # Guardar en la base de datos
+                    # Guardar respuesta en S3
+                    json_key = f"procesados/{file.filename}.json"
+                    s3_client.put_object(
+                        Bucket=BUCKET_NAME,
+                        Key=json_key,
+                        Body=json.dumps(json_data),
+                        ContentType="application/json"
+                    )
+
+                    # Guardar en la base de datos
                     new_imagen = await crud.create_imagen(db, file_location, informe_id)
-                    imagenes_rutas_guardadas.append(file_location)
-                    imagenes_json.append(response)
+                    #return {"message": "Imagen subida con éxito", "imagen": new_imagen}
+                
 
                 except Exception as e:
-                    return {"error": str(e)}
+                    errores.append(f"Error con {file.filename}: {str(e)}")
 
-        return {"message": "Imágenes subidas con éxito", "imagenes": imagenes_rutas_guardadas}
-    
+        return {
+            "message": "Proceso completado",
+            "errores": errores
+        }
 
     @app.get("/imagenes/{imagen_id}", tags=["Imágenes"])
     async def get_imagen(imagen_id: str):
