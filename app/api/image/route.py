@@ -9,6 +9,7 @@ from app.api.image import crud
 import boto3
 import os
 import uuid
+from app.api.image import calculos
 
 CONDASERVER_URL = "http://localhost:9000/procesar_imagen/"
 
@@ -48,10 +49,11 @@ def add_imagen_routes(app: FastAPI):
 
                     if response.status_code != 200:
                         return {"error": "Error en la comunicación con el servidor de procesamiento."}
-                    print(response.json())
                     
                     # Obtener el JSON de respuesta
                     json_data = response.json()
+                    resultadoFinal= calculos.PorcentajePositivos(json_data)
+                    print(resultadoFinal)
 
                     # Guardar respuesta en S3
                     json_key = f"procesados/{new_name}.json"
