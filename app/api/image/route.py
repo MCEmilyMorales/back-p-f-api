@@ -9,6 +9,7 @@ import boto3
 import os
 import uuid
 from app.api.image import calculos
+from app.api.informe import crud as crud_informe
 
 CONDASERVER_URL = "http://localhost:9000/procesar_imagen/"
 #CONDASERVER_URL = "http://3.145.154.40:9000/procesar_imagen/"
@@ -30,6 +31,15 @@ def add_imagen_routes(app: FastAPI):
         Recibe: el id informe al que pertenecen las imagenes y archivos imagen 
         Retorna: json con respuesta del modelo + interpretaciones
         """
+        # Validar si el id del informe es UUID
+        try:
+            uuid.UUID(informe_id)
+        except ValueError:
+            raise HTTPException(status_code=400, detail= "ID de informe invalido, debe ser UUID de 36 caracteres")   
+
+        #validamos existencia del informe
+        await crud_informe.get_informe_id(db, informe_id)
+
         resultadosFinales=[]
         errores = []
         async with httpx.AsyncClient() as client:
@@ -67,6 +77,11 @@ def add_imagen_routes(app: FastAPI):
         """Obtiene la URL de una imagen desde AWS S3
         Recibe: id de imagen. 
         Retorna: URL"""
+        try:
+            uuid.UUID(imagen_id)
+        except ValueError:
+            raise HTTPException(status_code=400, detail= "ID de imagen invalido, debe ser UUID de 36 caracteres")   
+
         imagen = await crud.get_imagen(db, imagen_id)
         
         if not imagen:
@@ -86,10 +101,14 @@ def add_imagen_routes(app: FastAPI):
         Recibe: id de imagen.
         Retorna: archivo de imagen en la respuesta.
         """
+        try:
+            uuid.UUID(imagen_id)
+        except ValueError:
+            raise HTTPException(status_code=400, detail= "ID de imagen invalido, debe ser UUID de 36 caracteres")   
+
         imagen = await crud.get_imagen(db, imagen_id)
         if not imagen:
             return {"error": "Imagen no encontrada"}
-
         try:
             # Descargar el archivo desde S3
             s3_response = s3_client.get_object(Bucket=BUCKET_NAME, Key=imagen.ubicacion)
@@ -99,13 +118,22 @@ def add_imagen_routes(app: FastAPI):
             return Response(content=contenido, media_type=content_type,
                 headers={"Content-Disposition": f"attachment; filename={imagen.ubicacion.split('/')[-1]}"})
         except Exception as e:
-            return {"error": str(e)}
+            return {"error al descargar el archivo desde S3": str(e)}
 
 
     @app.get("/imagenes/informe_id/{informe_id}", tags=["Imágenes"])
     async def list_imagenes(informe_id: str):
         """ Obtener la lista de imagenes para un informe especifico.
         Retorna: lista de diccionarios (ubicacion, Id Informe)"""
+        # Validar si el id del informe es UUID
+        try:
+            uuid.UUID(informe_id)
+        except ValueError:
+            raise HTTPException(status_code=400, detail= "ID de informe invalido, debe ser UUID de 36 caracteres")   
+
+        #validamos existencia del informe
+        await crud_informe.get_informe_id(db, informe_id)
+
         imagenes = await crud.get_imagenes_by_informe(db, informe_id)
         if not imagenes:
             raise HTTPException(status_code=404, detail="No se encontraron imágenes para este informe")
