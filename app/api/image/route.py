@@ -1,4 +1,3 @@
-#import json
 import json
 from typing import List
 import httpx
@@ -12,6 +11,7 @@ import uuid
 from app.api.image import calculos
 
 CONDASERVER_URL = "http://localhost:9000/procesar_imagen/"
+#CONDASERVER_URL = "http://3.145.154.40:9000/procesar_imagen/"
 
 s3_client = boto3.client(
     "s3",
@@ -21,32 +21,26 @@ s3_client = boto3.client(
 )
 BUCKET_NAME = os.getenv("AWS_BUCKET_NAME")
 
-
 def add_imagen_routes(app: FastAPI):
 
     @app.post("/upload/", tags=["Imágenes"])
-    async def upload_imagen(
-        informe_id: str = Form(...), 
-        files: List[UploadFile] = File(...)
-    ):
+    async def upload_imagen(informe_id: str = Form(...), files: List[UploadFile] = File(...)):
         """
-        Sube varias imágenes a AWS S3, las envía al servidor de IA (Conda) y 
-        guarda la respuesta en S3.
+        Sube varias imágenes a AWS, analiza con servidor IA (Conda) y guarda la rta (json) en S3.
+        Recibe: el id informe al que pertenecen las imagenes y archivos imagen 
+        Retorna: json con respuesta del modelo + interpretaciones
         """
-        imagenes_rutas_guardadas = []
         errores = []
-
         async with httpx.AsyncClient() as client:
             for file in files:
                 try:
-                    # Generar ruta en S3
+                    # Subir imagen en S3
                     new_name= await crud.generar_nombre_archivo(db, informe_id)
                     file_location = f"imagenes-dg-prueba/{new_name}{file.filename}"
                     s3_client.upload_fileobj(file.file, BUCKET_NAME, file_location )
 
-                    #data
+                    #comunicacion modelo ki67
                     response = requests.post(CONDASERVER_URL, json={"ubicacion": file_location})
-
                     if response.status_code != 200:
                         return {"error": "Error en la comunicación con el servidor de procesamiento."}
                     
@@ -54,25 +48,18 @@ def add_imagen_routes(app: FastAPI):
                     json_data = response.json()
                     resultadoFinal= calculos.PorcentajePositivos(json_data)
                     
-
                     # Guardar respuesta en S3
                     json_key = f"procesados/{new_name}.json"
-                    s3_client.put_object(
-                        Bucket=BUCKET_NAME,
-                        Key=json_key,
-                        Body=json.dumps(json_data),
-                        ContentType="application/json"
-                    )
+                    s3_client.put_object( Bucket = BUCKET_NAME, Key = json_key, Body = json.dumps(json_data), ContentType = "application/json")
 
-                    # Guardar en la base de datos
+                    # Guardar en la base de datos PostgreSQL
                     new_imagen = await crud.create_imagen(db, file_location, informe_id)
-                    #return {"message": "Imagen subida con éxito", "imagen": new_imagen}
-                
 
                 except Exception as e:
                     errores.append(f"Error con {file.filename}: {str(e)}")
 
         return {"respuesta":resultadoFinal}
+
 
     @app.get("/imagenes/{imagen_id}", tags=["Imágenes"])
     async def get_imagen(imagen_id: str):
@@ -112,7 +99,8 @@ def add_imagen_routes(app: FastAPI):
                 headers={"Content-Disposition": f"attachment; filename={imagen.ubicacion.split('/')[-1]}"})
         except Exception as e:
             return {"error": str(e)}
-        
+
+
     @app.get("/imagenes/informe_id/{informe_id}", tags=["Imágenes"])
     async def list_imagenes(informe_id: str):
         """ Obtener la lista de imagenes para un informe especifico.
