@@ -17,6 +17,11 @@ def PorcentajePositivos(data):
     else: interpretacion ="Alto índice de proliferación"
 
     return {'datos':{'porcentaje_positivo':porcentaje_positivo,
-                     'interpretacion':interpretacion},
+                     'interpretacion':interpretacion,
+                     'IA total cells': total_labels,
+                     'IA Positive Cells':count_positivo,
+                     'IA Negative Cells':(total_labels-count_positivo)
+
+                     },
                      'respuesta':data
             }
