@@ -42,7 +42,11 @@ async def get_all_informes(db: Prisma):
 
 async def get_informe_id(db: Prisma, informe_id: str)-> Informe:
     """ Conseguir a 1 informe de la base de datos segun su id"""
-    return await db.informe.find_unique(where={"id": informe_id})
+    informe = await db.informe.find_unique(where={"id": informe_id})
+    if not informe:
+        raise HTTPException(status_code=404, detail="Informe no encontrado")
+    return informe 
+
 
 async def delete_informe_id(db: Prisma, informe_id: str)-> Informe:
     """ Conseguir a 1 informe de la base de datos segun su id"""
