@@ -5,6 +5,8 @@ from app.api.user.models import UsuarioCreate
 from app.api.user.token.decodificar_token import obtener_usuario_actual
 from fastapi.security import OAuth2PasswordRequestForm
 from app.api.user.models import UsuarioUpdateMail
+import uuid
+
 
 
 def add_user_routes(app: FastAPI):

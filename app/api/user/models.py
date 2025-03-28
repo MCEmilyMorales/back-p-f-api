@@ -27,7 +27,7 @@ class UsuarioCreate(UsuarioBase):
     pass
 
 class UsuarioUpdateMail(UsuarioBase):
-    user_id:str = uuid.UUID
+    user_id:uuid = uuid.UUID
     mail: EmailStr
     nombre: str = Field(default=None, exclude=True)
     password: str = Field(default=None, exclude=True)
