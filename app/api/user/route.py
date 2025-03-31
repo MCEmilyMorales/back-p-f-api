@@ -35,6 +35,10 @@ def add_user_routes(app: FastAPI):
         """Permite actualizar el mail del usuario.
         Parametro: mail.
         Retorna: mensaje de exito de actualizacion o mensaje de error."""
+        try:
+            uuid.UUID(usuarioUpdateMail.user_id)
+        except ValueError:
+            raise HTTPException(status_code=400, detail="ID invalido, debe tener 36 caracteres.")
         mailUpdate = await crud.update_email(db, usuarioUpdateMail.user_id, usuarioUpdateMail.mail)
         if not mailUpdate:
             raise HTTPException(status_code=404, detail="No se pudo encontrar el usuario para actualizar el mail")
