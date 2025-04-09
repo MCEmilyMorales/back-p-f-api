@@ -11,11 +11,11 @@ from datetime import timedelta
 load_dotenv()
 
 
-async def create_user(db: Prisma, nombre: str, mail: str, password: str) -> Usuario:
+async def create_user(db: Prisma,  mail: str) -> Usuario:
     """Crea un nuevo usuario en la base de datos.
     Parametros: instancia de la base de datos, nombre, correo electrónico y contraseña en texto plano (se debe hashear antes de almacenarla).
     Retorna: objeto del usuario creado."""
-    return await db.usuario.create(data={"nombre": nombre, "mail": mail,"password": password})
+    return await db.usuario.create(data={ "mail": mail})
 
 
 async def get_user(db: Prisma, user_id: str) -> Usuario | None:
@@ -54,7 +54,6 @@ async def login(db: Prisma,form_data)-> dict:
     
     if not user or not await verificar_password(form_data.password, user.password):
         raise HTTPException(status_code=400, detail='Verifique sus datos.')
-
     # Generar token de acceso
     token_de_acceso = crear_token.crear_access_token(
         data={'sub': user.id},
