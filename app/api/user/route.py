@@ -14,11 +14,9 @@ def add_user_routes(app: FastAPI):
     @app.post("/users/", tags=["Usuarios"])
     async def create_user(usuarioCreate: UsuarioCreate):
         """Crear usuario en la base de datos.
-        Parametro: nombre, mail y contraseña.
+        Parametro: mail.
         Retorna: mensaje con id del usuario creado. """
-        # Hasheo la contraseña antes de guardarla
-        hashed_password = await crud.hashear_password(usuarioCreate.password)
-        new_user = await crud.create_user(db, usuarioCreate.nombre, usuarioCreate.mail, hashed_password)
+        new_user = await crud.create_user(db,  usuarioCreate.mail)
         return {"usuario creado con id = ": new_user.id}
 
     
