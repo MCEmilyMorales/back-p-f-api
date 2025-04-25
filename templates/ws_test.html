@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Test WebSocket</title>
+  </head>
+  <body>
+    <h2>WebSocket Test</h2>
+    <input type="text" id="jobId" placeholder="Enter job_id" />
+    <button onclick="connect()">Connect</button>
+    <pre id="output"></pre>
+
+    <script>
+      let socket;
+
+      function connect() {
+        const jobId = document.getElementById("jobId").value;
+        socket = new WebSocket(`ws://localhost:8000/ws/${jobId}`);
+
+        socket.onopen = () => log(`✅ Connected to job_id: ${jobId}`);
+        socket.onmessage = (event) => log(`📥 Received: ${event.data}`);
+        socket.onerror = (error) => log(`❌ Error: ${error}`);
+        socket.onclose = () => log(`🔌 Disconnected`);
+      }
+
+      function log(message) {
+        const output = document.getElementById("output");
+        output.textContent += message + "\n";
+      }
+    </script>
+  </body>
+</html>

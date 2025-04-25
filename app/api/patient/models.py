@@ -10,7 +10,7 @@ class PacienteBase(BaseModel):
             raise ValueError('El nombre no puede iniciar con un numero.')
         return value
     num_historia_clinica: str
-    usuarioId:uuid.UUID
+    usuarioId:str
 
 class PacienteCreate(PacienteBase):
     pass
