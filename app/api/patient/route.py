@@ -1,10 +1,11 @@
 import uuid
-from fastapi import FastAPI, HTTPException, Query
+from fastapi import Depends, FastAPI, HTTPException, Query
 from pydantic import BaseModel
 from app.api.database import db  
 from app.api.patient import crud
 from app.api.patient.models import PacienteCreate
-
+from app.api.user import crud as crudUser
+from typing import Optional
 
 def add_paciente_routes(app:FastAPI):
     @app.post("/paciente/", tags=["Paciente"])
@@ -12,12 +13,11 @@ def add_paciente_routes(app:FastAPI):
         """Permite insertar a un nuevo paciente en la base de datos.
         Recibe: instancia de base de datos, nombre, historia clinica y id del medico (usuario).
         retorna un mensaje de que el paciente fue cargado con exito"""
-        # Validar si id es UUID
-        try:
-            uuid.UUID(paciente.usuarioId)
-        except ValueError:
-            raise HTTPException(status_code=400, detail="ID invalido, debe tener 36 caracteres.")
-        nuevo_paciente = await crud.create_paciente(db, paciente)
+        IDuser = await crudUser.get_id_user(db, paciente.mail)
+        if not IDuser :
+            raise HTTPException(status_code=404, detail="Usuario no encontrado")
+        
+        nuevo_paciente = await crud.create_paciente(db, paciente, IDuser )
         
         if not nuevo_paciente:
             raise HTTPException(status_code=404, detail="No se pudo crear el paciente porque no existe el usuario asociado")
@@ -50,6 +50,20 @@ def add_paciente_routes(app:FastAPI):
         return paciente    
     
 
+    #Buscar paciente por DNI o SEXO o FECHA_DE_NACIMIENTO:
+    @app.get("/paciente_dni_sexo", tags=["Paciente"])
+    async def get_dni_paciente(paciente_dni: str= Depends(crud.validar_dni), paciente_sexo: Optional[str] = Depends(crud.validar_sexo), paciente_fecha_de_nacimiento:Optional[str] = Depends(crud.validar_fecha_de_nacimiento)):
+        """ Conseguir 1 paciente de la base de datos por medio del dni, del sexo o la fecha de nacimiento.
+        Recibe: obligatorio: dni del paciente, opcional:sexo, fecha de nacimiento.
+        Retorna el datos del paciente."""
+        if paciente_sexo:
+            paciente = await crud.get_paciente_dni_sexo(db, paciente_dni, paciente_sexo)
+        elif paciente_fecha_de_nacimiento: 
+            paciente = await crud.get_paciente_fecha_de_nacimiento(db, paciente_dni, paciente_sexo, paciente_fecha_de_nacimiento)
+        else:
+            paciente = await crud.get_paciente_dni(db, paciente_dni)
+        return paciente
+    
     @app.delete("/paciente/{paciente_id}", tags=["Paciente"])
     async def delete_paciente(paciente_id:str):
         """ Eliminar un paciente por su id.

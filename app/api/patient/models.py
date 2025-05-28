@@ -9,8 +9,10 @@ class PacienteBase(BaseModel):
         if not value or value[0].isdigit():
             raise ValueError('El nombre no puede iniciar con un numero.')
         return value
-    num_historia_clinica: str
-    usuarioId:uuid.UUID
+    dni: str
+    sexo: str
+    fecha_de_nacimiento: str 
+    mail: str 
 
 class PacienteCreate(PacienteBase):
     pass

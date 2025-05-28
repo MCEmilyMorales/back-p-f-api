@@ -15,14 +15,24 @@ async def create_user(db: Prisma,  mail: str) -> Usuario:
     """Crea un nuevo usuario en la base de datos.
     Parametros: instancia de la base de datos, nombre, correo electrónico y contraseña en texto plano (se debe hashear antes de almacenarla).
     Retorna: objeto del usuario creado."""
-    return await db.usuario.create(data={ "mail": mail})
 
+    existing_user = await db.usuario.find_unique(where={"mail": mail})
+    if existing_user:
+        raise HTTPException(status_code=409, detail="El correo ya está registrado.")
+    return await db.usuario.create(data={"mail": mail})
 
 async def get_user(db: Prisma, user_id: str) -> Usuario | None:
     """ Buscar un usuario por su ID en la base de datos.
     Parametros: instancia de la base de datos, ID del usuario.
     Retorna: Usuario si existe, None si no se encuentra."""
     return await db.usuario.find_unique(where={"id": user_id})
+
+async def get_id_user(db: Prisma, mail: str) -> Usuario | None:
+    """ Buscar un usuario por su mail en la base de datos.
+    Parametros: instancia de la base de datos, mail del usuario.
+    Retorna: Usuario si existe, None si no se encuentra."""
+    user = await db.usuario.find_unique(where={"mail": mail})
+    return user.id
 
 
 async def get_all_users(db: Prisma)-> list[Usuario]:

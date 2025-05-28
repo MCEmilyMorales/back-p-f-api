@@ -15,7 +15,7 @@ async def create_informe(db: Prisma, informeCreate: InformeCreate) -> Informe:
     - imagenes: Lista de IDs de imágenes a conectar
     """
      # Convertir la fecha a formato ISO 8601
-    fecha_iso = datetime.strptime(informeCreate.fecha_de_muestra, "%Y-%m-%d").isoformat() + "Z"
+    fecha_iso = datetime.strptime(informeCreate.fecha_de_muestra, "%Y-%m-%d %H:%M:%S").isoformat() + "Z"
 
     # verificar si el paciente existe en la BD-
     paciente_existe=await crud.get_paciente_id(db,informeCreate.paciente_id)
@@ -40,6 +40,13 @@ async def get_all_informes(db: Prisma):
     Retorna: lista de objetos de informes."""
     return await db.informe.find_many()
 
+async def list_informes_por_paciente(db:Prisma, paciente_id:str)->list[Informe]:
+    """Busca todos los registros en la tabla informe donde el campo pacienteId coincida con el valor de paciente_id. 
+    Retorno: La función retorna la lista de informes asociados al paciente proporcionado. Si no se encuentran, devuelve una lista vacía []."""
+    lista_informes = await db.informe.find_many(where={"pacienteId":paciente_id})
+    return lista_informes
+
+
 async def get_informe_id(db: Prisma, informe_id: str)-> Informe:
     """ Conseguir a 1 informe de la base de datos segun su id"""
     informe = await db.informe.find_unique(where={"id": informe_id})
@@ -47,6 +54,18 @@ async def get_informe_id(db: Prisma, informe_id: str)-> Informe:
         raise HTTPException(status_code=404, detail="Informe no encontrado")
     return informe 
 
+async def update_promedio(db: Prisma, id: str, promedio_rta_img:str) -> bool:
+    """Actualiza el promedio de rta para un informe en la base de datos.
+    Parametros: instancia de la base de datos, id del informe y nuevo promedio.
+    Retorna: True si la actualización fue exitosa, False si el usuario no fue encontrado."""
+    informe = await db.informe.find_unique(where={"id": id})
+    if not informe:
+        return False  # informe no encontrado
+    await db.informe.update(
+        where={"id": id},
+        data={"promedio_rta_img": promedio_rta_img}
+    )
+    return True  # Indica que la actualización fue exitosa
 
 async def delete_informe_id(db: Prisma, informe_id: str)-> Informe:
     """ Conseguir a 1 informe de la base de datos segun su id"""

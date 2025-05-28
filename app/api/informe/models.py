@@ -1,3 +1,4 @@
+from typing import Any, Dict
 from pydantic import BaseModel
 
 class InformeBase(BaseModel):
@@ -13,3 +14,7 @@ class InformeResponse(InformeBase):
 
     class Config:
         from_attributes = True  # Permite convertir desde modelos de BD
+
+class InformeUpdatePromedio(BaseModel):
+    id: str
+    promedio_rta_img: str

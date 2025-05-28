@@ -7,8 +7,6 @@ from fastapi.security import OAuth2PasswordRequestForm
 from app.api.user.models import UsuarioUpdateMail
 import uuid
 
-
-
 def add_user_routes(app: FastAPI):
     
     @app.post("/users/", tags=["Usuarios"])
@@ -43,6 +41,17 @@ def add_user_routes(app: FastAPI):
         return {"Mail actualizado correctamente"}
 
 
+    @app.get("/users/{mail}", tags=["Usuarios"])
+    async def get_id_user(mail:str):
+        """Obtener un ID por mail de usuairo.
+        Recibe: Mail del usuario. 
+        Retorna: ID del usuario buscado o algun mensaje de error"""
+        user = await crud.get_id_user(db, mail)
+        if not user:
+            raise HTTPException(status_code=404, detail="Usuario no encontrado")
+        return {"id": user.id}
+
+
     @app.get("/users/{user_id}", tags=["Usuarios"])
     async def get_user(user_id:str , login: dict = Depends(obtener_usuario_actual)):
         """Obtener un usuario por ID.
@@ -64,7 +73,7 @@ def add_user_routes(app: FastAPI):
         """ Obtener la lista de usuarios.
         Retorna: lista de diccionarios (ID, nombre)"""
         users = await crud.get_all_users(db)
-        return [{"id": u.id,"mail":u.mail, "nombre": u.nombre} for u in users]
+        return [{"id": u.id,"mail":u.mail} for u in users]
 
 
     @app.delete("/users/{user_id}", tags=["Usuarios"])

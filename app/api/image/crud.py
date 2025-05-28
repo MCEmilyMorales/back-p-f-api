@@ -1,3 +1,4 @@
+from fastapi import HTTPException
 from prisma.models import Imagen
 from prisma import Prisma
 import bcrypt
@@ -11,7 +12,16 @@ async def create_imagen(db: Prisma, ubicacion: str, informe_id: str) -> Imagen:
         Retorna: objeto Imagen"""
     return await db.imagen.create(data={"ubicacion": ubicacion, "informeId": informe_id})
 
-
+async def get_ubicacion_imagen(db: Prisma, imagen_id: str) -> Imagen | None:
+    """ Buscar una imagen por su ID en la base de datos.
+        Recibe: instancia de base de datos, ID.
+        Retorna: objeto Imagen o None"""
+    imagen = await db.imagen.find_unique(where={"id": imagen_id})
+    if not imagen:
+        raise HTTPException(status_code=404, detail="Imagen no encontrada")
+    else:
+        return imagen.ubicacion
+    
 async def get_imagen(db: Prisma, imagen_id: str) -> Imagen | None:
     """ Buscar una imagen por su ID en la base de datos.
         Recibe: instancia de base de datos, ID.
