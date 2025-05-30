@@ -25,9 +25,10 @@ async def get_user(db: Prisma, user_id: str) -> Usuario | None:
     """ Buscar un usuario por su ID en la base de datos.
     Parametros: instancia de la base de datos, ID del usuario.
     Retorna: Usuario si existe, None si no se encuentra."""
-    return await db.usuario.find_unique(where={"id": user_id})
+    user=await db.usuario.find_unique(where={"id": user_id})
+    return user
 
-async def get_id_user(db: Prisma, mail: str) -> Usuario | None:
+async def get_mail_user(db: Prisma, mail: str) -> Usuario | None:
     """ Buscar un usuario por su mail en la base de datos.
     Parametros: instancia de la base de datos, mail del usuario.
     Retorna: Usuario si existe, None si no se encuentra."""
@@ -108,15 +109,15 @@ async def get_user_nombre(db: Prisma, nombre: str)-> Usuario:
     return await db.usuario.find_unique(where={"nombre": nombre})
 
 
-async def update_email(db: Prisma, user_id: str, mail:str) -> bool:
-    """Actualiza el mail de un usuario en la base de datos.
-    Parametros: instancia de la base de datos, id del usuario y nuevo mail.
-    Retorna: True si la actualización fue exitosa, False si el usuario no fue encontrado."""
-    user=await db.usuario.find_unique(where={"id": user_id})
+async def update_email(db: Prisma, mail: str, mail_nuevo: str) -> bool:
+    """Actualiza el mail de un usuario en la base de datos."""
+    user = await db.usuario.find_first(where={"mail": mail})
     if not user:
-        return False  # Usuario no encontrado
+        print(f"Usuario no encontrado.{user}")
+        return False  # No se encontró el usuario
+
     await db.usuario.update(
-        where={"id": user_id},
-        data={"mail": mail}
+        where={"mail": mail},
+        data={"mail": mail_nuevo}
     )
-    return True  # Indica que la actualización fue exitosa
+    return True

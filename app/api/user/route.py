@@ -12,8 +12,8 @@ def add_user_routes(app: FastAPI):
     @app.post("/users/", tags=["Usuarios"])
     async def create_user(usuarioCreate: UsuarioCreate):
         """Crear usuario en la base de datos.
-        Parametro: mail.
-        Retorna: mensaje con id del usuario creado. """
+        Parametro: mail(unico).
+        Retorna: mensaje con id del usuario creado."""
         new_user = await crud.create_user(db,  usuarioCreate.mail)
         return {"usuario creado con id = ": new_user.id}
 
@@ -26,34 +26,30 @@ def add_user_routes(app: FastAPI):
         return await crud.login(db, form_data)
         
 
-    @app.put("/users/{user_id}", tags=["Usuarios"])
+    @app.put("/users/actualizar_email", tags=["Usuarios"])
     async def update_email(usuarioUpdateMail: UsuarioUpdateMail):
         """Permite actualizar el mail del usuario.
-        Parametro: mail.
+        Parametro: mail, mail_nuevo.
         Retorna: mensaje de exito de actualizacion o mensaje de error."""
-        try:
-            uuid.UUID(usuarioUpdateMail.user_id)
-        except ValueError:
-            raise HTTPException(status_code=400, detail="ID invalido, debe tener 36 caracteres.")
-        mailUpdate = await crud.update_email(db, usuarioUpdateMail.user_id, usuarioUpdateMail.mail)
+        mailUpdate = await crud.update_email(db, usuarioUpdateMail.mail, usuarioUpdateMail.mail_nuevo)
         if not mailUpdate:
             raise HTTPException(status_code=404, detail="No se pudo encontrar el usuario para actualizar el mail")
         return {"Mail actualizado correctamente"}
 
 
     @app.get("/users/{mail}", tags=["Usuarios"])
-    async def get_id_user(mail:str):
-        """Obtener un ID por mail de usuairo.
+    async def get_mail_user(mail:str):
+        """Obtener un ID por mail de usuario.
         Recibe: Mail del usuario. 
         Retorna: ID del usuario buscado o algun mensaje de error"""
-        user = await crud.get_id_user(db, mail)
-        if not user:
+        userId = await crud.get_mail_user(db, mail)
+        if not userId:
             raise HTTPException(status_code=404, detail="Usuario no encontrado")
-        return {"id": user.id}
+        return {"id": userId}
 
 
-    @app.get("/users/{user_id}", tags=["Usuarios"])
-    async def get_user(user_id:str , login: dict = Depends(obtener_usuario_actual)):
+    @app.get("/users_id/{user_id}", tags=["Usuarios"])
+    async def get_user(user_id:str):
         """Obtener un usuario por ID.
         Recibe: ID del usuario. 
         Retorna: ID y nombre del usuario buscado o algun mensaje de error"""
@@ -62,10 +58,10 @@ def add_user_routes(app: FastAPI):
             uuid.UUID(user_id)
         except ValueError:
             raise HTTPException(status_code=400, detail="ID invalido, debe tener 36 caracteres.")
-        user = await crud.get_user(db, user_id)
+        user = await crud.get_user(db, user_id)      
         if not user:
             raise HTTPException(status_code=404, detail="Usuario no encontrado")
-        return {"id": user.id, "nombre": user.nombre}
+        return {"mail": user.mail}
 
 
     @app.get("/users/", tags=["Usuarios"])
@@ -78,7 +74,7 @@ def add_user_routes(app: FastAPI):
 
     @app.delete("/users/{user_id}", tags=["Usuarios"])
     async def delete_user(user_id: str):
-        """ Eliminar un usuario.
+        """ Eliminar un usuario definitivamente.
         Recibe: id del usuario a eliminar. 
         Retorna: mensaje que notifica si se elimina o mensaje de error"""
         # Validar si informe_id es UUID
