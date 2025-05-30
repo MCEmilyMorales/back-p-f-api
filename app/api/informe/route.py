@@ -9,15 +9,17 @@ def add_informe_routes(app: FastAPI):
     @app.post("/informe/", tags=["Informe"])
     async def create_informe(informeCreate: InformeCreate):
         """Permite insertar a un nuevo informe en la base de datos.
-        Recibe: instancia de base de datos, fecha de muestra, pacienteId e imagenes.
+        Recibe: instancia de base de datos, fecha de muestra, paciente Id y tipo de estudio.
         retorna un mensaje de que el informe fue cargado con exito"""
         informe = await crud.create_informe(db, informeCreate)
         return informe
 
     @app.get("/informe/", tags=["Informe"])
     async def list_informes():
-        """ Conseguir un objeto de informes.
-        Retorna: lista de diccionarios"""
+        """ 
+        Conseguir un objeto de informes.
+        Retorna: lista de diccionarios
+        """
         informes = await crud.get_all_informes(db)
         return informes
     
@@ -28,19 +30,26 @@ def add_informe_routes(app: FastAPI):
 
     @app.get("/informe/paciente_id/{paciente_id}", tags=["Informe"])
     async def list_informes_por_paciente(paciente_id: str):
+        """ 
+        Conseguir un objeto de informes condicionado por id de paciente.
+        Recibe: id del paciente
+        Retorna: lista de diccionarios
+        """
         informes= await crud.list_informes_por_paciente(db, paciente_id) 
         return informes 
     
     @app.put("/informe/{informe_id}", tags=["Informe"])
     async def update_promedio_rta_img(InformeUpdatePromedio:InformeUpdatePromedio):
-        """Permite actualizar el promedio de resultado de las imagenes.
-        Parametro: modelo de informe con id y json.
-        Retorna: mensaje de exito de actualizacion o mensaje de error."""
+        """
+        Permite actualizar informacion de resultado de las imagenes.
+        Recibe: modelo de informe con id y string.
+        Retorna: mensaje de exito de actualizacion o mensaje de error.
+        """
         try:
             uuid.UUID(InformeUpdatePromedio.id)
         except ValueError:
             raise HTTPException(status_code=400, detail="ID invalido, debe tener 36 caracteres.")
-        #json_string = json.dumps(InformeUpdatePromedio.promedio_rta_img)
+        
         json_string = InformeUpdatePromedio.promedio_rta_img
         promedioUpdate = await crud.update_promedio(db, InformeUpdatePromedio.id, json_string)
         if not promedioUpdate:
@@ -49,6 +58,9 @@ def add_informe_routes(app: FastAPI):
     
     @app.delete("/informe/{informe_id}", tags=["Informe"])
     async def delete_informe_id(informe_id:str):
-        """ Eliminar 1 informe segun su id."""
+        """ 
+        Eliminar 1 informe segun su id.
+        Retorna: mensaje que informa eliminacion
+        """
         await crud.delete_informe_id(db, informe_id)
         return {"message":"Informe eliminado con exito"}
